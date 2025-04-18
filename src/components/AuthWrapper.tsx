@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext, useContext, useEffect } from 'react';
 import './AuthWrapper.css';
 
 interface AuthContextType {
@@ -9,17 +9,30 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth debe usarse dentro de un AuthWrapper');
+  }
+  return context;
+};
 
 const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  // Al cargar el componente, verificamos si ya hay una sesión
+  useEffect(() => {
+    const auth = sessionStorage.getItem('authenticated');
+    setIsAuthenticated(auth === 'true');
+  }, []);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (email === 'user@example.com' && password === 'pass123') {
+      sessionStorage.setItem('authenticated', 'true');
       setIsAuthenticated(true);
       setError('');
     } else {
@@ -28,12 +41,17 @@ const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = () => {
+    sessionStorage.removeItem('authenticated');
     setIsAuthenticated(false);
     setEmail('');
     setPassword('');
     setError('');
   };
 
+  // Mientras verifica sesión, no muestra nada
+  if (isAuthenticated === null) return null;
+
+  // Si no está autenticado, muestra login
   if (!isAuthenticated) {
     return (
       <div className="auth-container">
@@ -64,6 +82,7 @@ const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  // Si está autenticado, muestra la app
   return (
     <AuthContext.Provider value={{ logout }}>
       {children}
