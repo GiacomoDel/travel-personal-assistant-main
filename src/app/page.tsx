@@ -6,7 +6,10 @@ import AuthWrapper from "../components/AuthWrapper";
 import './styles/Layout.css';
 import { useAuth } from '@/components/AuthWrapper';
 export default function Home() {
+
+
   const [showLogout, setShowLogout] = useState(false);
+  const { logout } = useAuth();
 
   return (
     <AuthWrapper>
@@ -32,7 +35,11 @@ export default function Home() {
             <div className="user-section" onClick={() => setShowLogout(!showLogout)}>
               <span>Usuario</span>
               <div className="user-icon">👤</div>
-              {showLogout && <button className="logout-button">Cerrar Sesión</button>}
+              {showLogout && (
+                <button className="logout-button" onClick={logout}>
+                  Cerrar Sesión
+                </button>
+              )}
             </div>
           </nav>
           {/* Main */}
